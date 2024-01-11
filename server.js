@@ -16,7 +16,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/", express.static(process.env.PERSONAL_PORTFOLIO_DIR);
+app.use("/", express.static(process.env.PERSONAL_PORTFOLIO_DIR));
 
 app.use(
   "/budget-app",
