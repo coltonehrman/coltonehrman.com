@@ -1,14 +1,23 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import fs from "fs";
 import path from "path";
 import http from "http";
 import https from "https";
 import express from "express";
+import bodyParser from "body-parser";
+import email from "./email.js";
 
 const app = express();
 
-app.use((req, res, next) => {
-  req.secure ? next() : res.redirect("https://" + req.headers.host + req.url);
-});
+if (process.env.NODE_ENV === "production") {
+  app.use((req, res, next) => {
+    req.secure ? next() : res.redirect("https://" + req.headers.host + req.url);
+  });
+}
+
+app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   console.log(req.originalUrl);
@@ -16,17 +25,40 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/", express.static(process.env.PERSONAL_PORTFOLIO_DIR));
+app.post("/mail", async (req, res) => {
+  // const { name, phone, email, subject, message } = req.body;
+  console.log("getting mail");
+  console.log(req.body);
 
-app.use(
-  "/budget-app",
-  express.static(path.join(process.env.BUDGET_APP_DIR, "dist"))
-);
+  try {
+    const [toMe, toThem] = await email(req.body);
+    console.log("Email was sent: ");
+    console.log("To me: ", toMe);
+    console.log("To them: ", toThem);
+  } catch (e) {
+    console.error("Something went wrong with sending email: ", e);
+  }
 
-app.use(
-  "/budget-app",
-  express.static(path.join(process.env.BUDGET_APP_DIR, "build"))
-);
+  res.redirect("/");
+});
+
+if (process.env.PERSONAL_PORTFOLIO_DIR) {
+  app.use("/", express.static(process.env.PERSONAL_PORTFOLIO_DIR));
+}
+
+if (process.env.BUDGET_APP_DIR) {
+  app.use(
+    "/budget-app",
+    express.static(path.join(process.env.BUDGET_APP_DIR, "dist"))
+  );
+}
+
+if (process.env.BUDGET_APP_DIR) {
+  app.use(
+    "/budget-app",
+    express.static(path.join(process.env.BUDGET_APP_DIR, "build"))
+  );
+}
 
 let httpsServer;
 
