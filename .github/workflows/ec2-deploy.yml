@@ -1,0 +1,61 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Build & Deploy to EC2
+on:
+  push:
+    branches: ["main"]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+jobs:
+  build:
+    environment:
+      name: ec2-instance
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      # Install
+      - run: npm ci
+
+      # Build
+      - run: npm run build --if-present
+
+      # Create a local key file for SSH access
+      - run: echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
+
+      # Modify permissions to make SSG server happy :)
+      - run: chmod 400 key.pem
+
+      # Get current date
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d-%s')"
+
+      # Copy files to EC2
+      - uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "server.js,package.json,package-lock.json"
+          target: /tmp/coltonehrman.com-${{ steps.date.outputs.date }}
+
+      - name: Install App on EC2
+        run: ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.USERNAME }}@${{ secrets.HOST }} "sudo -E bash ~/ec2-scripts/install-app.sh coltonehrman.com ${{ steps.date.outputs.date }}"
+        continue-on-error: true
+
+      # - name: Stop App on EC2
+      #   run: ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.USERNAME }}@${{ secrets.HOST }} "sudo -E bash ~/ec2-scripts/kill-existing-app.sh"
+      #   continue-on-error: true
+      # - name: Start New App on EC2
+      #   run: ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.USERNAME }}@${{ secrets.HOST }} "sudo -E bash ~/ec2-scripts/run-app.sh"
