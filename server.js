@@ -7,7 +7,7 @@ import http from "http";
 import https from "https";
 import express from "express";
 import bodyParser from "body-parser";
-import email from "./email.js";
+import email from "./src/email.js";
 
 const app = express();
 

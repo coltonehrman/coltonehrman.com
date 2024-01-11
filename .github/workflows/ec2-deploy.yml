@@ -47,7 +47,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "server.js,package.json,package-lock.json"
+          source: "server.js,src/*,package.json,package-lock.json"
           target: /tmp/coltonehrman.com-${{ steps.date.outputs.date }}
 
       - name: Install App on EC2
