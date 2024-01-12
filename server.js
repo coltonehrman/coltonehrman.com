@@ -16,7 +16,7 @@ const blocklist = new Set(["::ffff:176.111.174.153"]);
 app.use((req, res, next) => {
   if (blocklist.has(req.ip)) {
     console.log("! Blocking IP: ", req.ip);
-    res.end();
+    return res.end();
   }
   next();
 });
