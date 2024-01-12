@@ -11,6 +11,16 @@ import email from "./src/email.js";
 
 const app = express();
 
+const blocklist = new Set(["::ffff:176.111.174.153"]);
+
+app.use((req, res, next) => {
+  if (blocklist.has(req.ip)) {
+    console.log("! Blocking IP: ", req.ip);
+    res.end();
+  }
+  next();
+});
+
 if (process.env.NODE_ENV === "production") {
   app.use((req, res, next) => {
     req.secure ? next() : res.redirect("https://" + req.headers.host + req.url);
@@ -20,8 +30,8 @@ if (process.env.NODE_ENV === "production") {
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
-  console.log("* ip :", req.ip);
-  console.log("* url :", req.originalUrl);
+  console.log("* ip: ", req.ip);
+  console.log("* url: ", req.originalUrl);
   console.log(req.protocol, req.hostname, req.baseUrl, req.headers);
   next();
 });
