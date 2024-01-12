@@ -20,7 +20,8 @@ if (process.env.NODE_ENV === "production") {
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
-  console.log(req.originalUrl);
+  console.log("* ip :", req.ip);
+  console.log("* url :", req.originalUrl);
   console.log(req.protocol, req.hostname, req.baseUrl, req.headers);
   next();
 });
