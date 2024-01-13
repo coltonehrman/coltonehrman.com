@@ -24,7 +24,12 @@ const app = express();
 const blocklist = new Set(["::ffff:176.111.174.153"]);
 
 app.use(async (req, res, next) => {
+  await redis.setEx(req.ip, 1, {
+    EX: 60,
+  });
+
   await redis.incr(req.ip);
+
   console.log(await redis.get(req.ip));
 
   if (blocklist.has(req.ip)) {
