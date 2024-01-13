@@ -34,9 +34,12 @@ app.use(async (req, res, next) => {
     NX: true,
   });
 
-  await redis.incr(req.ip);
+  const hits = await redis.incr(req.ip);
 
-  console.log(await redis.get(req.ip));
+  if (hits > 1000) {
+    console.log("! Rate limiting IP: ", req.ip);
+    return res.end();
+  }
 
   next();
 });
