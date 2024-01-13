@@ -77,7 +77,13 @@ app.post("/mail", async (req, res) => {
 });
 
 if (process.env.PERSONAL_PORTFOLIO_DIR) {
-  app.use("/", express.static(process.env.PERSONAL_PORTFOLIO_DIR));
+  app.use(
+    "/",
+    express.static(process.env.PERSONAL_PORTFOLIO_DIR, {
+      cacheControl: true,
+      maxAge: 1000 * 60 * 60 * 5, // 5 minutes
+    })
+  );
 }
 
 if (process.env.BUDGET_APP_DIR) {
