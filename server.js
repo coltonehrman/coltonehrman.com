@@ -24,11 +24,8 @@ const app = express();
 const blocklist = new Set(["::ffff:176.111.174.153"]);
 
 app.use(async (req, res, next) => {
-  console.log(await redis.get("ips"));
-
-  await redis.set("ips", {
-    [req.ip]: 1,
-  });
+  await redis.incr(req.ip);
+  console.log(await redis.get(req.ip));
 
   if (blocklist.has(req.ip)) {
     console.log("! Blocking IP: ", req.ip);
