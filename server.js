@@ -12,20 +12,29 @@ import email from "./src/email.js";
 
 const redis = createClient({
   url: `redis://${process.env.REDIS_CACHE_CLUSTER_ENDPOINT}`,
+  socket: {
+    tls: true,
+  },
 });
 
-redis.connect().then(console.log).catch(console.error);
-redis.set("foo", "bar").then(console.log).catch(console.error);
+redis.connect();
 
 const app = express();
 
 const blocklist = new Set(["::ffff:176.111.174.153"]);
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
+  console.log(await redis.get("ips"));
+
+  await redis.set("ips", {
+    [req.ip]: 1,
+  });
+
   if (blocklist.has(req.ip)) {
     console.log("! Blocking IP: ", req.ip);
     return res.end();
   }
+
   next();
 });
 
