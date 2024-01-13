@@ -36,7 +36,7 @@ app.use(async (req, res, next) => {
 
   const hits = await redis.incr(req.ip);
 
-  if (hits > 500) {
+  if (hits > 60) {
     console.log("! Rate limiting IP: ", req.ip);
     return res.end();
   }
@@ -89,14 +89,24 @@ if (process.env.PERSONAL_PORTFOLIO_DIR) {
 if (process.env.BUDGET_APP_DIR) {
   app.use(
     "/budget-app",
-    express.static(path.join(process.env.BUDGET_APP_DIR, "dist"))
+    express.static(
+      path.join(process.env.BUDGET_APP_DIR, "dist", {
+        cacheControl: true,
+        maxAge: 1000 * 60 * 60 * 5, // 5 minutes
+      })
+    )
   );
 }
 
 if (process.env.BUDGET_APP_DIR) {
   app.use(
     "/budget-app",
-    express.static(path.join(process.env.BUDGET_APP_DIR, "build"))
+    express.static(
+      path.join(process.env.BUDGET_APP_DIR, "build", {
+        cacheControl: true,
+        maxAge: 1000 * 60 * 60 * 5, // 5 minutes
+      })
+    )
   );
 }
 
