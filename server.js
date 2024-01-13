@@ -7,19 +7,15 @@ import http from "http";
 import https from "https";
 import express from "express";
 import bodyParser from "body-parser";
-import Memcached from "memcached";
+import { createClient } from "redis";
 import email from "./src/email.js";
 
-const memcached = new Memcached(process.env.MEMCACHE_ENDPOINT);
-
-memcached.set("foo", "bar", 10, function (err) {
-  console.error(err);
+const redis = createClient({
+  url: `redis://${process.env.REDIS_CACHE_CLUSTER_ENDPOINT}`,
 });
 
-memcached.get("foo", function (err, data) {
-  console.error(err);
-  console.log(data);
-});
+redis.connect().then(console.log).catch(console.error);
+redis.set("foo", "bar").then(console.log).catch(console.error);
 
 const app = express();
 
