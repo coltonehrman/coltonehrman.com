@@ -7,7 +7,19 @@ import http from "http";
 import https from "https";
 import express from "express";
 import bodyParser from "body-parser";
+import Memcached from "memcached";
 import email from "./src/email.js";
+
+const memcached = new Memcached(process.env.MEMCACHE_ENDPOINT);
+
+memcached.set("foo", "bar", 10, function (err) {
+  console.error(err);
+});
+
+memcached.get("foo", function (err, data) {
+  console.error(err);
+  console.log(data);
+});
 
 const app = express();
 
