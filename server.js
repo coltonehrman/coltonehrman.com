@@ -5,17 +5,7 @@ import path from "path";
 import http from "http";
 import express from "express";
 import bodyParser from "body-parser";
-import { createClient } from "redis";
 import email from "./src/email.js";
-
-const redis = createClient({
-  url: `redis://${process.env.REDIS_CACHE_CLUSTER_ENDPOINT}`,
-  socket: {
-    tls: true,
-  },
-});
-
-redis.connect();
 
 const app = express();
 
@@ -33,18 +23,6 @@ app.use((req, res, next) => {
 app.use(async (req, res, next) => {
   if (blocklist.has(req.ip)) {
     console.log("! Blocking IP: ", req.ip);
-    return res.end();
-  }
-
-  await redis.set(req.ip, 1, {
-    EX: 60,
-    NX: true,
-  });
-
-  const hits = await redis.incr(req.ip);
-
-  if (hits > 60) {
-    console.log("! Rate limiting IP: ", req.ip);
     return res.end();
   }
 
