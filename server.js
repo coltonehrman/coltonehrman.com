@@ -9,7 +9,7 @@ import email from "./src/email.js";
 
 const app = express();
 
-const blocklist = new Set(["176.111.174.153"]);
+const blocklist = new Set(["176.111.174.153", "185.234.216.114"]);
 
 app.set("trust proxy", true);
 
