@@ -6,6 +6,7 @@ import http from "http";
 import express from "express";
 import bodyParser from "body-parser";
 import email from "./src/email.js";
+import { Server } from "socket.io";
 
 const app = express();
 
@@ -67,5 +68,20 @@ if (process.env.BUDGET_APP_DIR) {
 }
 
 const httpServer = http.createServer(app);
+
+const io = new Server(httpServer, { /* options */ });
+
+io.on("connection", async (socket) => {
+  console.log('ws: recieved client connection', socket.id);
+
+  const sockets = await io.fetchSockets();
+
+  console.log('sockets', sockets.length);
+
+  socket.conn.on("close", (reason) => {
+    // called when the underlying connection is closed
+    console.log('ws: socket connection closed', socket.id, reason);
+  });
+});
 
 httpServer.listen(80);
